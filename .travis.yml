@@ -36,10 +36,16 @@ matrix:
     #      packages: ['clang-3.9']
     #  env: CCOMPILER='clang-3.9' CXXCOMPILER='clang++-3.9'
 
+    - os: osx
+      osx_image: xcode8.2
+      env: CCOMPILER='clang' CXXCOMPILER='clang++'
 
 before_install:
   - export CC=${CCOMPILER} CXX=${CXXCOMPILER}
-  - sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      sudo update-alternatives --install /usr/bin/node node /usr/bin/nodejs 10
+    fi
 
 install:
   # Make sure building and installing libsweep works
@@ -58,6 +64,7 @@ script:
   - python3 sweeppy.py
   - popd
   # Test SweepJs bindings against the dummy library
-  - pushd sweepjs
-  - npm install
-  - popd
+  - |
+    if [[ "${TRAVIS_OS_NAME}" == "linux" ]]; then
+      pushd sweepjs && npm install && popd
+    fi
