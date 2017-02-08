@@ -12,9 +12,14 @@ extern "C" {
 #define SWEEP_API __attribute__((visibility("default")))
 #define SWEEP_PACKED __attribute__((packed))
 #else
-#error "Only Clang and GCC supported at the moment, please open a ticket"
+#if defined _WIN32 || defined __CYGWIN__
+#define SWEEP_API __declspec(dllexport)
+#define SWEEP_PACKED(class_to_pack) __pragma(pack(push, 1)) class_to_pack __pragma(pack(pop))
+#else
+#error "Only Clang, GCC and Visual supported at the moment, please open a ticket"
 #define SWEEP_API
 #define SWEEP_PACKED
+#endif
 #endif
 
 #define SWEEP_VERSION_MAJOR 0
@@ -36,7 +41,7 @@ typedef struct sweep_scan* sweep_scan_s;
 SWEEP_API const char* sweep_error_message(sweep_error_s error);
 SWEEP_API void sweep_error_destruct(sweep_error_s error);
 
-SWEEP_API sweep_device_s sweep_device_construct_simple(sweep_error_s* error);
+SWEEP_API sweep_device_s sweep_device_construct_simple(const char* port, sweep_error_s* error);
 SWEEP_API sweep_device_s sweep_device_construct(const char* port, int32_t bitrate, sweep_error_s* error);
 SWEEP_API void sweep_device_destruct(sweep_device_s device);
 
