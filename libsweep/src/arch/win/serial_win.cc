@@ -1,11 +1,9 @@
 #include "serial.h"
 
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-#include <string.h>
 
 #include <windows.h>
 #include <tchar.h>
@@ -91,13 +89,12 @@ device_s device_construct(const char* port, int32_t bitrate, error_s* error) {
                             NULL);                        // Null for serial ports
 
   if (hComm == INVALID_HANDLE_VALUE) {
-    printf("Last error was: %d\n", GetLastError());
     *error = error_construct("opening serial port failed");
     return nullptr;
   }
 
   // retrieve the current comm state
-  DCB dcbSerialParams = {0}; // Initializing DCB structure
+  DCB dcbSerialParams;
   dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
   if (!GetCommState(hComm, &dcbSerialParams)) {
     *error = error_construct("retrieving current serial port state failed");
@@ -120,7 +117,12 @@ device_s device_construct(const char* port, int32_t bitrate, error_s* error) {
   }
 
   // specify timeouts (all values in milliseconds)
-  COMMTIMEOUTS timeouts = {0};
+  COMMTIMEOUTS timeouts;
+  if (!GetCommTimeouts(hComm, &timeouts)) {
+	  *error = error_construct("retrieving current serial port timeouts failed");
+	  CloseHandle(hComm);
+	  return nullptr;
+  }
   timeouts.ReadIntervalTimeout = 50;         // max time between arrival of two bytes before ReadFile() returns
   timeouts.ReadTotalTimeoutConstant = 50;    // used to calculate total time-out period for read operations
   timeouts.ReadTotalTimeoutMultiplier = 10;  // used to calculate total time-out period for read operations

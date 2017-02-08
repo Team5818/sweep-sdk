@@ -5,6 +5,9 @@ VERSION_MINOR = 1
 SRC_DIR := src
 # project directory containing include header files
 INC_DIR := inc
+# project directory containing sweep include header files
+SWEEP_INC_DIR := inc/sweep
+
 # created directory where object files will be placed
 OBJ_DIR := obj
 # created directory where outputs will be placed
@@ -57,7 +60,7 @@ else
 endif
 
 # Compiler should look in the inc directory for user-written header files
-INC_DIRS := -I$(INC_DIR)
+INC_DIRS := -I$(INC_DIR) -I$(SWEEP_INC_DIR)
 
 # Platform specific architecture subfolders to be made in the obj directory
 OBJ_ARCH_DIR = $(patsubst $(SRC_DIR)/%,$(OBJ_DIR)/%, $(SRC_ARCH_DIR))

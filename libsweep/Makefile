@@ -25,8 +25,8 @@ dummy_build: $(DUMMY_OBJ_FILES)
 
 install:
 	$(MKDIR_P) $(INSTALL_DIR_INCLUDES)
-	install -m 0644 $(INC_DIR)/sweep.h $(INSTALL_DIR_INCLUDES)
-	install -m 0644 $(INC_DIR)/sweep.hpp $(INSTALL_DIR_INCLUDES)
+	install -m 0644 $(SWEEP_INC_DIR)/sweep.h $(INSTALL_DIR_INCLUDES)
+	install -m 0644 $(SWEEP_INC_DIR)/sweep.hpp $(INSTALL_DIR_INCLUDES)
 	$(MKDIR_P) $(INSTALL_DIR_LIB)
 	install -m 0644 $(BIN_DIR)/$(target) $(INSTALL_DIR_LIB)
 	ln -sf $(INSTALL_DIR_LIB)/$(target) $(INSTALL_DIR_LIB)/$(target).$(VERSION_MAJOR)
