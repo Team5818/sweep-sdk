@@ -3,6 +3,7 @@
 
 #include <cmath>
 
+#include <cstdlib>
 #include <iostream>
 #include <mutex>
 #include <utility>
@@ -27,7 +28,7 @@ using PointCloudMutex = std::mutex;
 int main(int argc, char* argv[]) try {
   if (argc != 2) {
     std::cout << "Usage: ./example-viewer <portname>\n";
-    return 1;
+    return EXIT_FAILURE;
   }
 
   sf::RenderWindow window(sf::VideoMode::getDesktopMode(), "Example Viewer for Scanse Sweep LiDAR");
@@ -64,7 +65,7 @@ int main(int argc, char* argv[]) try {
   thread.launch();
 
   // Now start scanning in the second thread, swapping in new points for every scan
-  sweep::sweep device(argv[1]);
+  sweep::sweep device{argv[1]};
   device.start_scanning();
 
   sweep::scan scan;

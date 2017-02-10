@@ -25,7 +25,7 @@ static void check(sweep_error_s error) {
 int main(int argc, char* argv[]) {
   if (argc != 2) {
     fprintf(stdout, "Usage: ./example-c <portname>\n");
-    return 1;
+    return EXIT_FAILURE;
   }
   // Makes sure the installed library is compatible with the interface
   assert(sweep_is_abi_compatible());
