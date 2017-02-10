@@ -40,7 +40,6 @@ watch:
 	while ! inotifywait -e modify *.cc *.h; do make; done
 
 clean:
-	@$(RM) *.so *.o *.dll
-	@$(RM) -rf bin obj
+	@$(RM) -rf $(BIN_DIR) $(OBJ_DIR)
 
 .PHONY: clean install watch
