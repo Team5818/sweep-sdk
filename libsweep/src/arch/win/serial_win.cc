@@ -79,11 +79,11 @@ device_s device_construct(const char* port, int32_t bitrate, error_s* error) {
     return nullptr;
   }
 
-  TCHAR portName[32];
-  _stprintf_s(portName, sizeof(portName) / sizeof(TCHAR), _T("\\\\.\\COM%d"), port_num);
+  TCHAR port_name[32];
+  _stprintf_s(port_name, sizeof(port_name) / sizeof(TCHAR), _T("\\\\.\\COM%d"), port_num);
 
   // try to open the port
-  HANDLE hComm = CreateFile(portName,                     // port name
+  HANDLE hComm = CreateFile(port_name,                    // port name
                             GENERIC_READ | GENERIC_WRITE, // read/write
                             0,                            // No Sharing (serial ports can't be shared)
                             NULL,                         // No Security
@@ -97,23 +97,23 @@ device_s device_construct(const char* port, int32_t bitrate, error_s* error) {
   }
 
   // retrieve the current comm state
-  DCB dcbSerialParams;
-  dcbSerialParams.DCBlength = sizeof(dcbSerialParams);
-  if (!GetCommState(hComm, &dcbSerialParams)) {
+  DCB dcb_serial_params;
+  dcb_serial_params.DCBlength = sizeof(dcb_serial_params);
+  if (!GetCommState(hComm, &dcb_serial_params)) {
     *error = error_construct("retrieving current serial port state failed");
     CloseHandle(hComm);
     return nullptr;
   }
 
   // set the parameters to match the uART settings from the Sweep Comm Protocol
-  dcbSerialParams.BaudRate = CBR_115200; // BaudRate = 115200 (115.2kb/s)
-  dcbSerialParams.ByteSize = 8;          // ByteSize = 8
-  dcbSerialParams.StopBits = ONESTOPBIT; // # StopBits = 1
-  dcbSerialParams.Parity = NOPARITY;     // Parity = None
-  dcbSerialParams.fDtrControl = DTR_CONTROL_DISABLE;
+  dcb_serial_params.BaudRate = CBR_115200; // BaudRate = 115200 (115.2kb/s)
+  dcb_serial_params.ByteSize = 8;          // ByteSize = 8
+  dcb_serial_params.StopBits = ONESTOPBIT; // # StopBits = 1
+  dcb_serial_params.Parity = NOPARITY;     // Parity = None
+  dcb_serial_params.fDtrControl = DTR_CONTROL_DISABLE;
 
   // set the serial port parameters to the specified values
-  if (!SetCommState(hComm, &dcbSerialParams)) {
+  if (!SetCommState(hComm, &dcb_serial_params)) {
     *error = error_construct("setting serial port parameters failed");
     CloseHandle(hComm);
     return nullptr;
@@ -140,19 +140,19 @@ device_s device_construct(const char* port, int32_t bitrate, error_s* error) {
   }
 
   // create the overlapped os reader
-  OVERLAPPED osReader = {0};
-  OVERLAPPED osWrite = {0};
+  OVERLAPPED os_reader = {0};
+  OVERLAPPED os_write = {0};
 
   // Create the overlapped read event. Must be closed before exiting
-  osReader.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-  if (osReader.hEvent == NULL) {
+  os_reader.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+  if (os_reader.hEvent == NULL) {
     *error = error_construct("creating overlapped read event failed");
     CloseHandle(hComm);
     return nullptr;
   }
   // Create the overlapped write event. Must be closed before exiting
-  osWrite.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
-  if (osWrite.hEvent == NULL) {
+  os_write.hEvent = CreateEvent(NULL, TRUE, FALSE, NULL);
+  if (os_write.hEvent == NULL) {
     *error = error_construct("creating overlapped write event failed");
     CloseHandle(hComm);
     return nullptr;
@@ -162,8 +162,8 @@ device_s device_construct(const char* port, int32_t bitrate, error_s* error) {
   if (!SetCommMask(hComm, EV_RXCHAR | EV_ERR)) {
     *error = error_construct("setting comm mask failed");
     CloseHandle(hComm);
-    CloseHandle(osReader.hEvent);
-    CloseHandle(osWrite.hEvent);
+    CloseHandle(os_reader.hEvent);
+    CloseHandle(os_write.hEvent);
     return nullptr;
   }
 
@@ -171,13 +171,13 @@ device_s device_construct(const char* port, int32_t bitrate, error_s* error) {
   if (!PurgeComm(hComm, PURGE_RXABORT | PURGE_TXABORT | PURGE_RXCLEAR | PURGE_TXCLEAR)) {
     *error = error_construct("flushing serial port failed during serial device construction");
     CloseHandle(hComm);
-    CloseHandle(osReader.hEvent);
-    CloseHandle(osWrite.hEvent);
+    CloseHandle(os_reader.hEvent);
+    CloseHandle(os_write.hEvent);
     return nullptr;
   }
 
   // create the serial device
-  auto out = new device{hComm, osReader, osWrite};
+  auto out = new device{hComm, os_reader, os_write};
 
   return out;
 }
@@ -215,19 +215,19 @@ void device_read(device_s serial, void* to, int32_t len, error_s* error) {
   SWEEP_ASSERT(error);
 
   DWORD rx_read = 0;
-  DWORD totalNumBytesRead = 0;
+  DWORD total_num_bytes_read = 0;
 
   // read bytes until "len" bytes have been read
-  while (totalNumBytesRead < (DWORD)len) {
+  while (total_num_bytes_read < (DWORD)len) {
 
-    if (!ReadFile(serial->fd, (char*)to + totalNumBytesRead, len - totalNumBytesRead, &rx_read, &(serial->ro_))) {
+    if (!ReadFile(serial->fd, (char*)to + total_num_bytes_read, len - total_num_bytes_read, &rx_read, &(serial->ro_))) {
       *error = error_construct("reading from serial device failed");
       return;
     }
-    totalNumBytesRead += rx_read;
+    total_num_bytes_read += rx_read;
   }
 
-  SWEEP_ASSERT(totalNumBytesRead == (DWORD)len && "reliable read failed to read requested number of bytes");
+  SWEEP_ASSERT(total_num_bytes_read == (DWORD)len && "reliable read failed to read requested number of bytes");
 }
 
 void device_write(device_s serial, const void* from, int32_t len, error_s* error) {
@@ -238,7 +238,7 @@ void device_write(device_s serial, const void* from, int32_t len, error_s* error
 
   DWORD err;
   DWORD tx_written = 0;
-  DWORD totalNumBytesWritten = 0;
+  DWORD total_num_bytes_written = 0;
 
   // clear the comm errors, and purge if need be
   if (ClearCommError(serial->fd, &err, NULL) && err > 0) {
@@ -250,18 +250,18 @@ void device_write(device_s serial, const void* from, int32_t len, error_s* error
 
   // write bytes until "len" bytes have been written
   while (tx_written < (DWORD)len) {
-    if (!WriteFile(serial->fd,                               // Handle to the Serial port
-                   (const char*)from + totalNumBytesWritten, // Data to be written to the port
-                   len - totalNumBytesWritten,               // No of bytes to write
-                   &tx_written,                              // Bytes written
+    if (!WriteFile(serial->fd,                                  // Handle to the Serial port
+                   (const char*)from + total_num_bytes_written, // Data to be written to the port
+                   len - total_num_bytes_written,               // No of bytes to write
+                   &tx_written,                                 // Bytes written
                    &(serial->wo_))) {
       *error = error_construct("writing to serial device failed");
       return;
     }
-    totalNumBytesWritten += tx_written;
+    total_num_bytes_written += tx_written;
   }
 
-  SWEEP_ASSERT(((int32_t)totalNumBytesWritten == len) && "reliable write failed to write requested number of bytes");
+  SWEEP_ASSERT(((int32_t)total_num_bytes_written == len) && "reliable write failed to write requested number of bytes");
 }
 
 void device_flush(device_s serial, error_s* error) {
