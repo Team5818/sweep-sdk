@@ -1,9 +1,9 @@
 #include "serial.h"
 
-#include <stdint.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
+#include <cstdint>
+#include <cstdlib>
+#include <cstring>
+#include <cstdio>
 
 #include <windows.h>
 #include <tchar.h>
@@ -119,9 +119,9 @@ device_s device_construct(const char* port, int32_t bitrate, error_s* error) {
   // specify timeouts (all values in milliseconds)
   COMMTIMEOUTS timeouts;
   if (!GetCommTimeouts(hComm, &timeouts)) {
-	  *error = error_construct("retrieving current serial port timeouts failed");
-	  CloseHandle(hComm);
-	  return nullptr;
+    *error = error_construct("retrieving current serial port timeouts failed");
+    CloseHandle(hComm);
+    return nullptr;
   }
   timeouts.ReadIntervalTimeout = 50;         // max time between arrival of two bytes before ReadFile() returns
   timeouts.ReadTotalTimeoutConstant = 50;    // used to calculate total time-out period for read operations
