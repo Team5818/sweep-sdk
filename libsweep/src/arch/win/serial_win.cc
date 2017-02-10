@@ -84,13 +84,13 @@ device_s device_construct(const char* port, int32_t bitrate, error_s* error) {
   port_name += std::to_string(port_num);
 
   // try to open the port
-  HANDLE hComm = CreateFile(port_name.c_str(),            // port name
-                            GENERIC_READ | GENERIC_WRITE, // read/write
-                            0,                            // No Sharing (serial ports can't be shared)
-                            NULL,                         // No Security
-                            OPEN_EXISTING,                // Open existing port only
-                            0,                            // Non Overlapped I/O
-                            NULL);                        // Null for serial ports
+  auto hComm = CreateFile(port_name.c_str(),            // port name
+                          GENERIC_READ | GENERIC_WRITE, // read/write
+                          0,                            // No Sharing (serial ports can't be shared)
+                          NULL,                         // No Security
+                          OPEN_EXISTING,                // Open existing port only
+                          0,                            // Non Overlapped I/O
+                          NULL);                        // Null for serial ports
 
   if (hComm == INVALID_HANDLE_VALUE) {
     *error = error_construct("opening serial port failed");
@@ -189,20 +189,14 @@ void device_destruct(device_s serial) {
   error_s ignore = nullptr;
   device_flush(serial, &ignore);
 
-  // try to close the serial port
-  if (!CloseHandle(serial->fd)) {
-    ignore = error_construct("closing serial port failed");
-  }
+  // close the serial port
+  CloseHandle(serial->fd);
 
-  // try to close the overlapped read event
-  if (!CloseHandle(serial->ro_.hEvent)) {
-    ignore = error_construct("closing serial port overlapped read event failed");
-  }
+  // close the overlapped read event
+  CloseHandle(serial->ro_.hEvent);
 
-  // try to close the overlapped write event
-  if (!CloseHandle(serial->wo_.hEvent)) {
-    ignore = error_construct("closing serial port overlapped write event failed");
-  }
+  // close the overlapped write event
+  CloseHandle(serial->wo_.hEvent);
 
   (void)ignore; // nothing we can do here
 
