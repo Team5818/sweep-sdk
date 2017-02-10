@@ -8,19 +8,15 @@ This can be either the dummy library always returning static point cloud data or
 
 #### To build on Linux: 
 
-Requires `libsweep.so` be installed, in `"/usr/lib"` for example.
+Requires `libsweep.so` be installed.
 
 ```bash
-    # build the examples
-    mkdir build
-    cd build
-    cmake ..
-    cmake --build .
+# build the examples
+mkdir build
+cd build
+cmake ..
+cmake --build .
 ```
-
-**Note:**
-- The viewer requires SFML2 to be installed.
-- The pub-sub networking example requires Protobuf and ZeroMQ to be installed.
 
 ```bash
     # run the examples
@@ -30,11 +26,16 @@ Requires `libsweep.so` be installed, in `"/usr/lib"` for example.
 
 Real-time viewer:
 
+**Note:** The viewer requires SFML2 to be installed.
+
 ```bash
     ./example-viewer /dev/ttyUSB0
 ```
 
-Pub-Sub networking example.
+Pub-Sub networking example:
+
+**Note:** The pub-sub networking example requires Protobuf and ZeroMQ to be installed.
+
 Start a publisher sending out full 360 degree scans via the network (localhost).
 Then start some subscribers connecting to the publisher.
 
@@ -44,23 +45,23 @@ Then start some subscribers connecting to the publisher.
 ```
 
 
-#### To build on windows with MinGW-w64 and MSYS2:
-Requires that `libsweep.dll` be installed somewhere on the user environment variable "PATH", such as `"C:\msys32\mingw64\bin"` for example.
+#### To build on Windows with MinGW-w64 and MSYS2:
+Requires that `libsweep.dll` be installed somewhere on the user environment variable "PATH", such as `"C:\msys32\mingw64\bin"` for example. You can edit the installation path in `config.mk`.
 
 ```bash
-    # build the examples
-    mkdir build
-    cd build
-    cmake -G "MSYS Makefiles" ..
-    cmake --build .
+# build the examples
+mkdir build
+cd build
+cmake -G "MSYS Makefiles" ..
+cmake --build .
 ```
 
 **Note:** the viewer & pub/sub examples are not compatible with windows currently.
 
 ```bash
-    # run the examples (the number 5 is just an example, replace it with your COM port number)
-    ./example-c COM5
-    ./example-c++ COM5
+# run the examples (the number 5 is just an example, replace it with your COM port number)
+./example-c COM5
+./example-c++ COM5
 ```
 
 ### License
