@@ -45,13 +45,16 @@ static int32_t detail_get_port_number(const char* port, error_s* error) {
   SWEEP_ASSERT(port);
   SWEEP_ASSERT(error);
 
-  for (int i = 0; i < 99; i++) {
-    char str[10];
-    sprintf(str, "COM%d", i);
-    if (strcmp(port, str) == 0) {
-      return i;
-    }
+  if (strlen(port) <= 3) {
+    *error = error_construct("invalid port name");
+    return -1;
   }
+
+  char* end;
+  long parsed_int = std::strtoll(port + 3, &end, 10);
+
+  if (parsed_int >= 0 && parsed_int <= 255)
+    return parsed_int;
 
   *error = error_construct("invalid port name");
   return -1;
@@ -68,16 +71,16 @@ device_s device_construct(const char* port, int32_t bitrate, error_s* error) {
   }
 
   // read port number from the port name
-  error_s portNumError = nullptr;
-  int portNum = detail_get_port_number(port, &portNumError);
+  error_s port_num_error = nullptr;
+  int port_num = detail_get_port_number(port, &port_num_error);
 
-  if (portNumError || portNum < 0) {
-    *error = portNumError;
+  if (port_num_error) {
+    *error = port_num_error;
     return nullptr;
   }
 
   TCHAR portName[32];
-  _stprintf_s(portName, sizeof(portName) / sizeof(TCHAR), _T("\\\\.\\COM%d"), portNum);
+  _stprintf_s(portName, sizeof(portName) / sizeof(TCHAR), _T("\\\\.\\COM%d"), port_num);
 
   // try to open the port
   HANDLE hComm = CreateFile(portName,                     // port name
