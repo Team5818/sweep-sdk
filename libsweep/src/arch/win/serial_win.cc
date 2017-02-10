@@ -4,9 +4,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <cstdio>
+#include <string>
 
 #include <windows.h>
-#include <tchar.h>
 
 namespace sweep {
 namespace serial {
@@ -79,11 +79,12 @@ device_s device_construct(const char* port, int32_t bitrate, error_s* error) {
     return nullptr;
   }
 
-  TCHAR port_name[32];
-  _stprintf_s(port_name, sizeof(port_name) / sizeof(TCHAR), _T("\\\\.\\COM%d"), port_num);
+  // Construct formal serial port name
+  std::string port_name{"\\\\.\\COM"};
+  port_name += std::to_string(port_num);
 
   // try to open the port
-  HANDLE hComm = CreateFile(port_name,                    // port name
+  HANDLE hComm = CreateFile(port_name.c_str(),            // port name
                             GENERIC_READ | GENERIC_WRITE, // read/write
                             0,                            // No Sharing (serial ports can't be shared)
                             NULL,                         // No Security
