@@ -215,7 +215,7 @@ void device_read(device_s serial, void* to, int32_t len, error_s* error) {
   // read bytes until "len" bytes have been read
   while (total_num_bytes_read < (DWORD)len) {
 
-    if (!ReadFile(serial->fd, (char*)to + total_num_bytes_read, len - total_num_bytes_read, &rx_read, &(serial->ro_))) {
+    if (!ReadFile(serial->fd, (unsigned char*)to + total_num_bytes_read, len - total_num_bytes_read, &rx_read, &(serial->ro_))) {
       *error = error_construct("reading from serial device failed");
       return;
     }
@@ -223,6 +223,8 @@ void device_read(device_s serial, void* to, int32_t len, error_s* error) {
   }
 
   SWEEP_ASSERT(total_num_bytes_read == (DWORD)len && "reliable read failed to read requested number of bytes");
+  if (total_num_bytes_read != (DWORD)len)
+    *error = error_construct("reading from serial device failed");
 }
 
 void device_write(device_s serial, const void* from, int32_t len, error_s* error) {
@@ -245,10 +247,10 @@ void device_write(device_s serial, const void* from, int32_t len, error_s* error
 
   // write bytes until "len" bytes have been written
   while (tx_written < (DWORD)len) {
-    if (!WriteFile(serial->fd,                                  // Handle to the Serial port
-                   (const char*)from + total_num_bytes_written, // Data to be written to the port
-                   len - total_num_bytes_written,               // No of bytes to write
-                   &tx_written,                                 // Bytes written
+    if (!WriteFile(serial->fd,                                           // Handle to the Serial port
+                   (const unsigned char*)from + total_num_bytes_written, // Data to be written to the port
+                   len - total_num_bytes_written,                        // No of bytes to write
+                   &tx_written,                                          // Bytes written
                    &(serial->wo_))) {
       *error = error_construct("writing to serial device failed");
       return;
@@ -256,7 +258,9 @@ void device_write(device_s serial, const void* from, int32_t len, error_s* error
     total_num_bytes_written += tx_written;
   }
 
-  SWEEP_ASSERT(((int32_t)total_num_bytes_written == len) && "reliable write failed to write requested number of bytes");
+  SWEEP_ASSERT((total_num_bytes_written == (DWORD)len) && "reliable write failed to write requested number of bytes");
+  if (total_num_bytes_written != (DWORD)len)
+    *error = error_construct("writing to serial device failed");
 }
 
 void device_flush(device_s serial, error_s* error) {
