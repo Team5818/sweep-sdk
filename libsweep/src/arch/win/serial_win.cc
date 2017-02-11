@@ -233,14 +233,19 @@ void device_write(device_s serial, const void* from, int32_t len, error_s* error
   SWEEP_ASSERT(len >= 0);
   SWEEP_ASSERT(error);
 
-  DWORD err;
+  DWORD err = 0;
   DWORD tx_written = 0;
   DWORD total_num_bytes_written = 0;
 
-  // clear the comm errors, and purge if need be
-  if (ClearCommError(serial->fd, &err, NULL) && err > 0) {
+  // check for a comm error (clears any error flag present)
+  if (!ClearCommError(serial->fd, &err, NULL)) {
+    *error = error_construct("checking for/clearing comm error failed during serial port write");
+    return;
+  }
+  // in the event of a comm error, purge before writing
+  if (err > 0) {
     if (!PurgeComm(serial->fd, PURGE_TXABORT | PURGE_TXCLEAR)) {
-      *error = error_construct("purging tx buffer failed during seiral port write");
+      *error = error_construct("purging tx buffer failed during serial port write");
       return;
     }
   }
@@ -267,8 +272,12 @@ void device_flush(device_s serial, error_s* error) {
   SWEEP_ASSERT(serial);
   SWEEP_ASSERT(error);
 
-  // TODO: Before flushing/purging the port, should check for
-  // and handle or explicitly ignore any pending port erros
+  DWORD err = 0;
+  // check for a comm error (clears any error flag present)
+  if (!ClearCommError(serial->fd, &err, NULL)) {
+    *error = error_construct("checking for/clearing comm error failed during serial port flush");
+    return;
+  }
 
   // flush serial port
   // - Empty Tx and Rx buffers
