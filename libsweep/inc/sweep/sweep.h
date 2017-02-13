@@ -10,15 +10,12 @@ extern "C" {
 
 #if __GNUC__ >= 4
 #define SWEEP_API __attribute__((visibility("default")))
-#define SWEEP_PACKED __attribute__((packed))
 #else
 #if defined _WIN32 || defined __CYGWIN__
 #define SWEEP_API __declspec(dllexport)
-#define SWEEP_PACKED(class_to_pack) __pragma(pack(push, 1)) class_to_pack __pragma(pack(pop))
 #else
 #error "Only Clang, GCC and Visual supported at the moment, please open a ticket"
 #define SWEEP_API
-#define SWEEP_PACKED
 #endif
 #endif
 

@@ -33,21 +33,27 @@ extern const uint8_t RESET_DEVICE[2];
 
 // Packets for communication
 
-#if __GNUC__ >= 4
+#pragma pack(push, 1)
 typedef struct {
   uint8_t cmdByte1;
   uint8_t cmdByte2;
   uint8_t cmdParamTerm;
-} SWEEP_PACKED cmd_packet_s;
+} cmd_packet_s;
+#pragma pack(pop)
+static_assert(sizeof(cmd_packet_s) == 3, "cmd packet size mismatch");
 
+#pragma pack(push, 1)
 typedef struct {
   uint8_t cmdByte1;
   uint8_t cmdByte2;
   uint8_t cmdParamByte1;
   uint8_t cmdParamByte2;
   uint8_t cmdParamTerm;
-} SWEEP_PACKED cmd_param_packet_s;
+} cmd_param_packet_s;
+#pragma pack(pop)
+static_assert(sizeof(cmd_param_packet_s) == 5, "cmd param packet size mismatch");
 
+#pragma pack(push, 1)
 typedef struct {
   uint8_t cmdByte1;
   uint8_t cmdByte2;
@@ -55,8 +61,11 @@ typedef struct {
   uint8_t cmdStatusByte2;
   uint8_t cmdSum;
   uint8_t term1;
-} SWEEP_PACKED response_header_s;
+} response_header_s;
+#pragma pack(pop)
+static_assert(sizeof(response_header_s) == 6, "response header size mismatch");
 
+#pragma pack(push, 1)
 typedef struct {
   uint8_t cmdByte1;
   uint8_t cmdByte2;
@@ -67,153 +76,20 @@ typedef struct {
   uint8_t cmdStatusByte2;
   uint8_t cmdSum;
   uint8_t term2;
-} SWEEP_PACKED response_param_s;
+} response_param_s;
+#pragma pack(pop)
+static_assert(sizeof(response_param_s) == 9, "response param size mismatch");
 
+#pragma pack(push, 1)
 typedef struct {
   uint8_t sync_error; // see response_scan_packet_sync::bits below
   uint16_t angle;     // see u16_to_f32
   uint16_t distance;
   uint8_t signal_strength;
   uint8_t checksum;
-} SWEEP_PACKED response_scan_packet_s;
-
-typedef struct {
-  uint8_t cmdByte1;
-  uint8_t cmdByte2;
-  uint8_t bit_rate[6];
-  uint8_t laser_state;
-  uint8_t mode;
-  uint8_t diagnostic;
-  uint8_t motor_speed[2];
-  uint8_t sample_rate[4];
-  uint8_t term;
-} SWEEP_PACKED response_info_device_s;
-
-typedef struct {
-  uint8_t cmdByte1;
-  uint8_t cmdByte2;
-  uint8_t model[5];
-  uint8_t protocol_major;
-  uint8_t protocol_min;
-  uint8_t firmware_major;
-  uint8_t firmware_minor;
-  uint8_t hardware_version;
-  uint8_t serial_no[8];
-  uint8_t term;
-} SWEEP_PACKED response_info_version_s;
-
-typedef struct {
-  uint8_t cmdByte1;
-  uint8_t cmdByte2;
-  uint8_t motor_speed[2];
-  uint8_t term;
-} SWEEP_PACKED response_info_motor_s;
-
-typedef struct {
-  uint8_t cmdByte1;
-  uint8_t cmdByte2;
-  uint8_t sample_rate[2];
-  uint8_t term;
-} SWEEP_PACKED response_info_sample_rate_s;
-#else
-#if defined _WIN32 || defined __CYGWIN__
-SWEEP_PACKED(typedef struct {
-  uint8_t cmdByte1;
-  uint8_t cmdByte2;
-  uint8_t cmdParamTerm;
-} cmd_packet_s;)
-
-SWEEP_PACKED(typedef struct {
-  uint8_t cmdByte1;
-  uint8_t cmdByte2;
-  uint8_t cmdParamByte1;
-  uint8_t cmdParamByte2;
-  uint8_t cmdParamTerm;
-} cmd_param_packet_s;)
-
-SWEEP_PACKED(typedef struct {
-  uint8_t cmdByte1;
-  uint8_t cmdByte2;
-  uint8_t cmdStatusByte1;
-  uint8_t cmdStatusByte2;
-  uint8_t cmdSum;
-  uint8_t term1;
-} response_header_s;)
-
-SWEEP_PACKED(typedef struct {
-  uint8_t cmdByte1;
-  uint8_t cmdByte2;
-  uint8_t cmdParamByte1;
-  uint8_t cmdParamByte2;
-  uint8_t term1;
-  uint8_t cmdStatusByte1;
-  uint8_t cmdStatusByte2;
-  uint8_t cmdSum;
-  uint8_t term2;
-} response_param_s;)
-
-SWEEP_PACKED(typedef struct {
-  uint8_t sync_error;
-  uint16_t angle; // see u16_to_f32
-  uint16_t distance;
-  uint8_t signal_strength;
-  uint8_t checksum;
-} response_scan_packet_s;)
-
-SWEEP_PACKED(typedef struct {
-  uint8_t cmdByte1;
-  uint8_t cmdByte2;
-  uint8_t bit_rate[6];
-  uint8_t laser_state;
-  uint8_t mode;
-  uint8_t diagnostic;
-  uint8_t motor_speed[2];
-  uint8_t sample_rate[4];
-  uint8_t term;
-} response_info_device_s;)
-
-SWEEP_PACKED(typedef struct {
-  uint8_t cmdByte1;
-  uint8_t cmdByte2;
-  uint8_t model[5];
-  uint8_t protocol_major;
-  uint8_t protocol_min;
-  uint8_t firmware_major;
-  uint8_t firmware_minor;
-  uint8_t hardware_version;
-  uint8_t serial_no[8];
-  uint8_t term;
-} response_info_version_s;)
-
-SWEEP_PACKED(typedef struct {
-  uint8_t cmdByte1;
-  uint8_t cmdByte2;
-  uint8_t motor_speed[2];
-  uint8_t term;
-} response_info_motor_s;)
-
-SWEEP_PACKED(typedef struct {
-  uint8_t cmdByte1;
-  uint8_t cmdByte2;
-  uint8_t sample_rate[2];
-  uint8_t term;
-} response_info_sample_rate_s;)
-#else
-#error "Only Clang, GCC and Visual supported at the moment, please open a ticket"
-#define SWEEP_API
-#define SWEEP_PACKED
-#endif
-#endif
-
-static_assert(sizeof(cmd_packet_s) == 3, "cmd packet size mismatch");
-static_assert(sizeof(cmd_param_packet_s) == 5, "cmd param packet size mismatch");
-static_assert(sizeof(response_header_s) == 6, "response header size mismatch");
-static_assert(sizeof(response_param_s) == 9, "response param size mismatch");
+} response_scan_packet_s;
+#pragma pack(pop)
 static_assert(sizeof(response_scan_packet_s) == 7, "response scan packet size mismatch");
-static_assert(sizeof(response_info_device_s) == 18, "response info device size mismatch");
-static_assert(sizeof(response_info_version_s) == 21, "response info version size mismatch");
-static_assert(sizeof(response_info_motor_s) == 5, "response info motor size mismatch");
-static_assert(sizeof(response_info_sample_rate_s) == 5, "response info sample rate size mismatch");
 
 namespace response_scan_packet_sync {
 enum bits : uint8_t {
@@ -229,6 +105,57 @@ enum bits : uint8_t {
   reserved7 = 1 << 7,
 };
 }
+
+#pragma pack(push, 1)
+typedef struct {
+  uint8_t cmdByte1;
+  uint8_t cmdByte2;
+  uint8_t bit_rate[6];
+  uint8_t laser_state;
+  uint8_t mode;
+  uint8_t diagnostic;
+  uint8_t motor_speed[2];
+  uint8_t sample_rate[4];
+  uint8_t term;
+} response_info_device_s;
+#pragma pack(pop)
+static_assert(sizeof(response_info_device_s) == 18, "response info device size mismatch");
+
+#pragma pack(push, 1)
+typedef struct {
+  uint8_t cmdByte1;
+  uint8_t cmdByte2;
+  uint8_t model[5];
+  uint8_t protocol_major;
+  uint8_t protocol_min;
+  uint8_t firmware_major;
+  uint8_t firmware_minor;
+  uint8_t hardware_version;
+  uint8_t serial_no[8];
+  uint8_t term;
+} response_info_version_s;
+#pragma pack(pop)
+static_assert(sizeof(response_info_version_s) == 21, "response info version size mismatch");
+
+#pragma pack(push, 1)
+typedef struct {
+  uint8_t cmdByte1;
+  uint8_t cmdByte2;
+  uint8_t motor_speed[2];
+  uint8_t term;
+} response_info_motor_s;
+#pragma pack(pop)
+static_assert(sizeof(response_info_motor_s) == 5, "response info motor size mismatch");
+
+#pragma pack(push, 1)
+typedef struct {
+  uint8_t cmdByte1;
+  uint8_t cmdByte2;
+  uint8_t sample_rate[2];
+  uint8_t term;
+} response_info_sample_rate_s;
+#pragma pack(pop)
+static_assert(sizeof(response_info_sample_rate_s) == 5, "response info sample rate size mismatch");
 
 void write_command(sweep::serial::device_s serial, const uint8_t cmd[2], error_s* error);
 
